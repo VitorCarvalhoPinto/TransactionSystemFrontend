@@ -4,33 +4,31 @@ import { useState } from "react";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
 
-const Login = () => {
+const Register = () => {
     
     const router = useRouter();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     
-    const handleLogin = async (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
+        
         try{
-            const response = await api.post("/users/login", { email, password });
-            
-            localStorage.setItem("token", response.data.token);
-            localStorage.setItem("user", JSON.stringify(response.data.user));
+            const response = await api.post("/users/register", { email, password });
 
-            router.push('/dashboard')
+            alert("Registered with success")
+            router.push('/')
 
         } catch (e){
             console.log(e)
         }
-        
     }
 
     return(
         <>
             <div>
-                <form onSubmit={handleLogin}>
+                <form onSubmit={handleRegister}>
 
                     <input 
                         type="text" 
@@ -49,11 +47,11 @@ const Login = () => {
 
                 </form>
                 
-                <p>Don't have an account? <a href="/register">Register</a></p>
+                <p>Alredy have an account? <a href="/login">Login</a></p>
             </div>
         </>
     );
 
 }
 
-export default Login;
+export default Register;
