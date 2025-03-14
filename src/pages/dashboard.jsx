@@ -37,7 +37,7 @@ const dashboard = () => {
     
     useEffect(() => {
 
-        if (!loading && !user && !adm) {
+        if (!loading && !user) {
           router.push("/");
         }
 
@@ -45,6 +45,7 @@ const dashboard = () => {
 
     useEffect(() => {
         if (token && user !== undefined) {
+
             handleGetBallance();
             handleGetTransactions();
         }
@@ -56,7 +57,8 @@ const dashboard = () => {
     };
 
     const handleGetTransactions = async (params = "") => {
-        if (adm === true) {
+        // console.log(adm === "true")
+        if (adm === "true") {
             const response = await getAllTransactions(params.toString());
             setTransactions(response);
         } else {
@@ -104,14 +106,14 @@ const dashboard = () => {
     
         const params = new URLSearchParams();
     
-        if (filters.cpf && adm) params.append("cpf", filters.cpf);
+        if (filters.cpf && adm==="true") params.append("cpf", filters.cpf);
         if (filters.status) params.append("status", filters.status);
         if (filters.description) params.append("description", filters.description);
         if (filters.startDate) params.append("startDate", filters.startDate);
         if (filters.endDate) params.append("endDate", filters.endDate);
     
         try {
-            const response = !adm === false ? await getTransactionByUser(user.id, params.toString()) : await getAllTransactions(params.toString())
+            const response = adm === "false" ? await getTransactionByUser(user.id, params.toString()) : await getAllTransactions(params.toString())
             setTransactions(response);
         } catch (error) {
             console.error("Erro ao buscar transações filtradas:", error);
