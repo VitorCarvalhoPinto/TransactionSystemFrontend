@@ -16,6 +16,8 @@ const dashboard = () => {
     const [points, setPoins] = useState();
     const [transaction, setTransaction] = useState();
     const [description, setDescription] = useState("");
+
+    const [ballance, setBallance] = useState()
     
     const [file, setFile] = useState()
 
@@ -29,10 +31,16 @@ const dashboard = () => {
 
     useEffect(() => {
         if (token) {
+            handleGetBallance()
             //   handleGetTransactions();
             handleGetUserTransactions();
         }
-    }, [token]);
+    }, [token, transactions]);
+
+    const handleGetBallance = async () => {
+        const response = await api.get(`/users/ballance/${user.id}`)
+        setBallance(response.data)
+    };
 
     const config = {
         headers: { Authorization: `Bearer ${token}` }
@@ -63,6 +71,7 @@ const dashboard = () => {
             config
         )
         console.log("inserido com sucesso")
+        handleGetUserTransactions();
     }
 
     const handleFileSubmit = async (e) => {
@@ -148,7 +157,7 @@ const dashboard = () => {
 
             <h1>Welcome, {user.name}!</h1>
             <p>Email: {user.email}</p>
-            <p>Wallet: {user.ballance}</p>
+            <p>Wallet: {ballance}</p>
             <button onClick={logout}>Sair</button>
 
             <FilterForm onFilter={handleFilter} />

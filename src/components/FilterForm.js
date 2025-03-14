@@ -21,7 +21,7 @@ const FilterForm = ({ onFilter }) => {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
+    <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", gap: 2, alignItems: "center", paddingTop: 2 }}>
       <TextField
         label="CPF"
         name="cpf"
