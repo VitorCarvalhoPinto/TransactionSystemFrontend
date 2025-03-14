@@ -20,7 +20,8 @@ export const getTransactionByUser = async (id, filter = {}) => {
 
 export const createTransaction = async (id_user, points, description, transaction) => {
     try {
-        const response = await api.get("/transactions/create", { id_user, points, description, value: transaction })
+        console.log(id_user, points, description, transaction)
+        const response = await api.post("/transactions/create", { id_user, points, description, value: transaction })
         alert("inserido com sucesso")
         return response.data;
     } catch(error) {

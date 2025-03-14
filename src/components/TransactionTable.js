@@ -1,4 +1,5 @@
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem } from "@mui/material";
+import { parseDate } from "@/app/functions/parseDate";
 
 const TransactionTable = ({ transactions, handleStatusChange }) => {
     return (
@@ -20,7 +21,7 @@ const TransactionTable = ({ transactions, handleStatusChange }) => {
                         <TableRow key={index}>
                             <TableCell>{row.cpf}</TableCell>
                             <TableCell>{row.description}</TableCell>
-                            <TableCell>{row.transactionDate}</TableCell>
+                            <TableCell>{parseDate(row.transactionDate)}</TableCell>
                             <TableCell>{row.points}</TableCell>
                             <TableCell>{row.value}</TableCell>
                             <TableCell>{row.status}</TableCell>

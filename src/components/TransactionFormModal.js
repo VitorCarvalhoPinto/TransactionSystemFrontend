@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { Modal, Box, TextField, Button, Typography } from "@mui/material";
 
-const TransactionFormModal = ({ open, onClose, handleTransaction, user }) => {
-    const [points, setPoints] = useState("");
-    const [transaction, setTransaction] = useState("");
-    const [description, setDescription] = useState("");
+const TransactionFormModal = ({ open, onClose, handleTransaction, 
+    setPoints, setTransaction, setDescription,
+    points, transaction, description    
+}) => {
+    // const [points, setPoints] = useState("");
+    // const [transaction, setTransaction] = useState("");
+    // const [description, setDescription] = useState("");
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        handleTransaction(e, points, transaction, description);
+        await handleTransaction(e, points, transaction, description);
         onClose();
     };
 

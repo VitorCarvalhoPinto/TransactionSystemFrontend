@@ -14,6 +14,7 @@ import {
     FormControlLabel,
     Checkbox,
 } from "@mui/material";
+import CPFInput from "@/components/CPFInput";
 
 const Register = () => {
     const router = useRouter();
@@ -96,7 +97,7 @@ const Register = () => {
 
                 <TextField
                     label="Email"
-                    type="text"
+                    type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     fullWidth
@@ -110,6 +111,8 @@ const Register = () => {
                     fullWidth
                     required
                 />
+                {/* <CPFInput value={cpf} onChange={setCpf} /> */}
+
 
                 <TextField
                     label="Password"

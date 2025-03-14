@@ -17,6 +17,7 @@ import { getAllTransactions,
     createTransactionCsv,
     updateTransactionStatus
 } from "@/services/transactionService"
+import CPFInput from "@/components/CPFInput"
 
 const dashboard = () => {
 
@@ -25,7 +26,7 @@ const dashboard = () => {
 
     const [transactions, setTransactions] = useState([]) 
 
-    const [points, setPoins] = useState();
+    const [points, setPoints] = useState();
     const [transaction, setTransaction] = useState();
     const [description, setDescription] = useState("");
 
@@ -55,7 +56,7 @@ const dashboard = () => {
     };
 
     const handleGetTransactions = async (params = "") => {
-        if (adm) {
+        if (adm === true) {
             const response = await getAllTransactions(params.toString());
             setTransactions(response);
         } else {
@@ -63,12 +64,11 @@ const dashboard = () => {
             setTransactions(response);
         }
     }
-    
 
     const handleCreateTransaction = async (e) => {
         e.preventDefault();
         await createTransaction(user.id, points, description, transaction)
-        if(adm) await getAllTransactions(); else await getTransactionByUser(user.id);
+        await handleGetTransactions();
     }
 
     const handleFileSubmit = async (e) => {
@@ -100,7 +100,7 @@ const dashboard = () => {
     }
 
     const handleFilter = async (filters) => {
-        console.log("Filtros aplicados:", filters);
+        // console.log("Filtros aplicados:", filters);
     
         const params = new URLSearchParams();
     
@@ -111,7 +111,7 @@ const dashboard = () => {
         if (filters.endDate) params.append("endDate", filters.endDate);
     
         try {
-            const response = !adm ? await getTransactionByUser(user.id, params.toString()) : await getAllTransactions(params.toString())
+            const response = !adm === false ? await getTransactionByUser(user.id, params.toString()) : await getAllTransactions(params.toString())
             setTransactions(response);
         } catch (error) {
             console.error("Erro ao buscar transações filtradas:", error);
@@ -154,6 +154,12 @@ const dashboard = () => {
                     onClose={() => setModalOpen(false)}
                     handleTransaction={handleCreateTransaction}
                     user={user}
+                    setPoints={setPoints}
+                    setTransaction={setTransaction}
+                    setDescription={setDescription}
+                    points={points}
+                    transaction={transaction}
+                    description={description}
                 />
 
                 <CSVUpload file={file} setFile={setFile} handleFileSubmit={handleFileSubmit} />
