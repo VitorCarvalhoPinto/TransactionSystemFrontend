@@ -3,12 +3,24 @@
 import { AuthContext } from "@/context/AuthContext"
 import api from "@/services/api"
 import { useRouter } from "next/router"
-import { use, useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import FilterForm from "@/components/FilterForm"
+import { Button, Typography, Box } from "@mui/material";
+import TransactionTable from "@/components/TransactionTable";
+import TransactionFormModal from "@/components/TransactionFormModal";
+import CSVUpload from "@/components/CSVUpload";
+
+import { getUserBallance } from "@/services/userService"
+import { getAllTransactions, 
+    getTransactionByUser, 
+    createTransaction ,
+    createTransactionCsv,
+    updateTransactionStatus
+} from "@/services/transactionService"
 
 const dashboard = () => {
 
-    const {user, logout, loading, token} = useContext(AuthContext);
+    const {adm, user, logout, loading, token} = useContext(AuthContext);
     const router = useRouter();
 
     const [transactions, setTransactions] = useState([]) 
@@ -19,59 +31,44 @@ const dashboard = () => {
 
     const [ballance, setBallance] = useState()
     
-    const [file, setFile] = useState()
-
+    const [file, setFile] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    
     useEffect(() => {
 
-        if (!loading && !user) {
+        if (!loading && !user && !adm) {
           router.push("/");
         }
 
     }, [loading, user, router]);
 
     useEffect(() => {
-        if (token) {
-            handleGetBallance()
-            //   handleGetTransactions();
-            handleGetUserTransactions();
+        if (token && user !== undefined) {
+            handleGetBallance();
+            handleGetTransactions();
         }
-    }, [token, transactions]);
-
+    }, [token, adm, user]);
+    
     const handleGetBallance = async () => {
-        const response = await api.get(`/users/ballance/${user.id}`)
-        setBallance(response.data)
+        const response = await getUserBallance(user.id)
+        setBallance(response)
     };
 
-    const config = {
-        headers: { Authorization: `Bearer ${token}` }
-    };
-
-    const configCSV = {
-        headers: { 
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data"  }
+    const handleGetTransactions = async (params = "") => {
+        if (adm) {
+            const response = await getAllTransactions(params.toString());
+            setTransactions(response);
+        } else {
+            const response = await getTransactionByUser(user.id, params.toString());
+            setTransactions(response);
+        }
     }
     
-    const handleGetTransactions = async () => {
-        const response = await api.get("/transactions/all", config)
-        setTransactions(response.data)
-    }
 
-    const handleGetUserTransactions = async () => {
-        const response = await api.get(`/transactions/user/${user.id}`, config)
-        setTransactions(response.data)
-    }
-
-    const handleTransaction = async (e) => {
-        const id_user  = user.id;
+    const handleCreateTransaction = async (e) => {
         e.preventDefault();
-        const response = await api.post(
-            "/transactions/create", 
-            { id_user, points, description, value: transaction },  
-            config
-        )
-        console.log("inserido com sucesso")
-        handleGetUserTransactions();
+        await createTransaction(user.id, points, description, transaction)
+        if(adm) await getAllTransactions(); else await getTransactionByUser(user.id);
     }
 
     const handleFileSubmit = async (e) => {
@@ -84,63 +81,38 @@ const dashboard = () => {
         const formData = new FormData();
         formData.append("file", file); 
     
-        try {
-            const response = await api.post("/transactions/csv", formData, configCSV);
-            console.log("Arquivo enviado com sucesso!", response.data);
-        } catch (error) {
-            console.error("Erro ao enviar arquivo:", error);
-        }
+        await createTransactionCsv(formData, token)
+        await handleGetTransactions();
     };
 
     const handleStatusChange = async (transactionID, newStatus) => {
-        try {
-          await api.put(`/transactions/update/${transactionID}`, { status: newStatus }, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+        await updateTransactionStatus(transactionID, newStatus)
     
-          setTransactions((prevTransactions) =>
-            prevTransactions.map((transaction) =>
-              transaction.id === transactionID ? { ...transaction, status: newStatus } : transaction
-            )
-          );
-    
-          console.log(`Status atualizado para ${newStatus}`);
-        } catch (error) {
-          console.error("Erro ao atualizar status:", error);
-        }
+      setTransactions((prevTransactions) =>
+        prevTransactions.map((transaction) =>
+          transaction.id === transactionID ? { ...transaction, status: newStatus } : transaction
+        )
+      );
     };
 
-    const handleFilterAdm = async (filters) => {
-        console.log("Filtros aplicados:", filters);
-    
-        const params = new URLSearchParams();
-    
-        if (filters.status) params.append("status", filters.status);
-        if (filters.description) params.append("description", filters.description);
-        if (filters.startDate) params.append("startDate", filters.startDate);
-        if (filters.endDate) params.append("endDate", filters.endDate);
-    
-        try {
-            const response = await api.get(`/transactions/all?${params.toString()}`);
-            setTransactions(response.data);
-        } catch (error) {
-            console.error("Erro ao buscar transações filtradas:", error);
-        }
-    };
+    const handleClear = () => {
+        handleGetTransactions();
+    }
 
     const handleFilter = async (filters) => {
         console.log("Filtros aplicados:", filters);
     
         const params = new URLSearchParams();
     
+        if (filters.cpf && adm) params.append("cpf", filters.cpf);
         if (filters.status) params.append("status", filters.status);
         if (filters.description) params.append("description", filters.description);
         if (filters.startDate) params.append("startDate", filters.startDate);
         if (filters.endDate) params.append("endDate", filters.endDate);
     
         try {
-            const response = await api.get(`/transactions/user/${user.id}?${params.toString()}`);
-            setTransactions(response.data);
+            const response = !adm ? await getTransactionByUser(user.id, params.toString()) : await getAllTransactions(params.toString())
+            setTransactions(response);
         } catch (error) {
             console.error("Erro ao buscar transações filtradas:", error);
         }
@@ -154,97 +126,44 @@ const dashboard = () => {
 
     return (
         <div>
+            <Box sx={{ p: 3 }}>
+                <Typography variant="h4" gutterBottom>
+                    Welcome, {user.name}!
+                </Typography>
 
-            <h1>Welcome, {user.name}!</h1>
-            <p>Email: {user.email}</p>
-            <p>Wallet: {ballance}</p>
-            <button onClick={logout}>Sair</button>
+                <Typography variant="body1" gutterBottom>
+                    Email: {user.email}
+                </Typography>
 
-            <FilterForm onFilter={handleFilter} />
+                <Typography variant="body1" gutterBottom>
+                    Wallet: {user.ballance}
+                </Typography>
 
-            <div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>CPF</th>
-                            <th>Description</th>
-                            <th>Transaction Date</th>
-                            <th>Points</th>
-                            <th>Value</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                <Button onClick={logout} variant="contained" sx={{ mb: 3 }}>
+                    Logout
+                </Button>
 
-                    <tbody>
-                        {transactions.map((row, index) => (
-                            <tr key={index}>
-                                <td>
-                                    {row.cpf}
-                                </td>
+                <FilterForm onFilter={handleFilter} onClear={handleClear} />
 
-                                <td>
-                                    {row.description}
-                                </td>
+                <Button onClick={() => setModalOpen(true)} variant="contained" sx={{ mb: 3 }}>
+                    Create Transaction
+                </Button>
 
-                                <td>
-                                    {row.transactionDate}
-                                </td>
-
-                                <td>
-                                    {row.points}
-                                </td>
-
-                                <td>
-                                    {row.value}
-                                </td>
-
-                                <td>
-                                    {row.status}
-                                </td>
-                                <td>
-                                    <select
-                                        value={row.status}
-                                        onChange={(e) => handleStatusChange(row.id, e.target.value)}
-                                    >
-                                        <option value="pending">Pending</option>
-                                        <option value="approved">Approved</option>
-                                        <option value="denied">Denied</option>
-                                    </select>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            <form onSubmit={handleTransaction}>
-                <input 
-                    type="text"
-                    placeholder="Description" 
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                <TransactionFormModal
+                    open={modalOpen}
+                    onClose={() => setModalOpen(false)}
+                    handleTransaction={handleCreateTransaction}
+                    user={user}
                 />
 
-                <input 
-                    type="number"
-                    placeholder="Transaction Value" 
-                    value={transaction}
-                    onChange={(e) => {setTransaction(e.target.value), setPoins(e.target.value)}}
-                />
+                <CSVUpload file={file} setFile={setFile} handleFileSubmit={handleFileSubmit} />
 
-                <input 
-                    disabled
-                    type="number"
-                    placeholder="Points" 
-                    value={points}
-                />     
+                <TransactionTable transactions={transactions} handleStatusChange={handleStatusChange} />
+            </Box>
 
-                <button type="submit">Create transaction</button>       
-            </form>
-            <input type="file" accept=".csv" onChange={(e) => setFile(e.target.files[0])}/>
-            <button onClick={handleFileSubmit} disabled={!file}>Submit CSV</button>
         </div>
+
+        
       );
 }
 

@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { TextField, MenuItem, Button, Box } from "@mui/material";
+import { AuthContext } from "@/context/AuthContext";
 
-const FilterForm = ({ onFilter }) => {
+
+const FilterForm = ({ onFilter, onClear }) => {
+
+  const { adm } = useContext(AuthContext)
+
   const [formFiltro, setFormFiltro] = useState({
     cpf: "",
     status: "",
@@ -20,15 +25,28 @@ const FilterForm = ({ onFilter }) => {
     onFilter(formFiltro);
   };
 
+  const handleClear = () => {
+    setFormFiltro({
+      cpf: "",
+      status: "",
+      description: "",
+      startDate: "",
+      endDate: "",
+    });
+    onClear(formFiltro);
+  };
+
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", gap: 2, alignItems: "center", paddingTop: 2 }}>
-      <TextField
-        label="CPF"
-        name="cpf"
-        value={formFiltro.cpf}
-        onChange={handleChange}
-        size="small"
-      />
+      
+      {adm && <TextField
+          label="CPF"
+          name="cpf"
+          value={formFiltro.cpf}
+          onChange={handleChange}
+          size="small"
+        />
+      }
       
       <TextField
         select
@@ -53,7 +71,7 @@ const FilterForm = ({ onFilter }) => {
       />
 
       <TextField
-        label="Data Inicial"
+        label="Start Date"
         type="date"
         name="startDate"
         value={formFiltro.startDate}
@@ -63,7 +81,7 @@ const FilterForm = ({ onFilter }) => {
       />
 
       <TextField
-        label="Data Final"
+        label="End Date"
         type="date"
         name="endDate"
         value={formFiltro.endDate}
@@ -73,7 +91,11 @@ const FilterForm = ({ onFilter }) => {
       />
 
       <Button type="submit" variant="contained" color="primary">
-        Filtrar
+        Filter
+      </Button>
+
+      <Button onClick={handleClear} variant="contained" color="primary">
+        Clear
       </Button>
     </Box>
   );
