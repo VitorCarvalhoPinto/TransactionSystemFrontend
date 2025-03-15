@@ -16,9 +16,9 @@ import {
 const Login = () => {
     const router = useRouter();
 
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("adm")
+    // localStorage.removeItem("user");
+    // localStorage.removeItem("token");
+    // localStorage.removeItem("adm")
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");

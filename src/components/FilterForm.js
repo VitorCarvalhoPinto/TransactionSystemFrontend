@@ -39,7 +39,7 @@ const FilterForm = ({ onFilter, onClear }) => {
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", gap: 2, alignItems: "center", paddingTop: 2 }}>
       
-        {adm && <TextField
+        {adm == "true" && <TextField
             label="CPF"
             name="cpf"
             value={formFiltro.cpf}

@@ -164,7 +164,7 @@ const dashboard = () => {
                     description={description}
                 />
 
-                <CSVUpload file={file} setFile={setFile} handleFileSubmit={handleFileSubmit} />
+                {adm === "true" && <CSVUpload file={file} setFile={setFile} handleFileSubmit={handleFileSubmit} />}
 
                 <TransactionTable transactions={transactions} handleStatusChange={handleStatusChange} />
             </Box>
